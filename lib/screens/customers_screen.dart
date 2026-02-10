@@ -18,19 +18,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   void initState() {
     super.initState();
-    // Initial fetch of some customers or empty
-    // We might need a 'getAllCustomers' in provider if we want to list default
+    Future.microtask(() => context.read<CustomerProvider>().fetchCustomers());
   }
 
-  void _showAddCustomerDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final phoneController = TextEditingController();
-    final addressController = TextEditingController();
+  void _showCustomerDialog(BuildContext context, {Customer? customer}) {
+    final isEditing = customer != null;
+    final nameController = TextEditingController(text: customer?.name ?? '');
+    final phoneController = TextEditingController(text: customer?.phone ?? '');
+    final addressController =
+        TextEditingController(text: customer?.address ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Customer'),
+        title: Text(isEditing ? 'Edit Customer' : 'Add Customer'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,19 +49,35 @@ class _CustomersScreenState extends State<CustomersScreen> {
             onPressed: () async {
               if (nameController.text.isNotEmpty &&
                   phoneController.text.isNotEmpty) {
-                final customer = Customer(
-                  name: nameController.text,
-                  phone: phoneController.text,
-                  address: addressController.text,
-                );
                 try {
-                  await context.read<CustomerProvider>().addCustomer(customer);
-                  if (mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Customer Added!')),
+                  if (isEditing) {
+                    final updatedCustomer = Customer(
+                      id: customer.id,
+                      name: nameController.text,
+                      phone: phoneController.text,
+                      address: addressController.text,
+                      previousDue: customer.previousDue, // Keep existing due
                     );
+                    await context
+                        .read<CustomerProvider>()
+                        .updateCustomer(updatedCustomer);
+                    if (mounted)
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Customer Updated')));
+                  } else {
+                    final newCustomer = Customer(
+                      name: nameController.text,
+                      phone: phoneController.text,
+                      address: addressController.text,
+                    );
+                    await context
+                        .read<CustomerProvider>()
+                        .addCustomer(newCustomer);
+                    if (mounted)
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Customer Added')));
                   }
+                  if (mounted) Navigator.pop(context);
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +89,46 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 }
               }
             },
-            child: const Text('Add'),
+            child: Text(isEditing ? 'Update' : 'Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, Customer customer) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Customer'),
+        content: Text('Are you sure you want to delete "${customer.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              try {
+                await context
+                    .read<CustomerProvider>()
+                    .deleteCustomer(customer.id!);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Customer Deleted')));
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: AppColors.error));
+                }
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -86,7 +142,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         title: const Text('Customers'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddCustomerDialog(context),
+        onPressed: () => _showCustomerDialog(context),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -133,14 +189,32 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(customer.phone),
-                        trailing: Text(
-                          'Due: \$${customer.previousDue.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: customer.previousDue > 0
-                                ? AppColors.error
-                                : AppColors.primary,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Due: \$${customer.previousDue.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: customer.previousDue > 0
+                                    ? AppColors.error
+                                    : AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: AppColors.accent),
+                              onPressed: () => _showCustomerDialog(context,
+                                  customer: customer),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete,
+                                  color: AppColors.error),
+                              onPressed: () =>
+                                  _confirmDelete(context, customer),
+                            ),
+                          ],
                         ),
                       ),
                     );

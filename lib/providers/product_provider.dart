@@ -36,4 +36,29 @@ class ProductProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> updateProduct(Product product) async {
+    try {
+      await _supabaseService.updateProduct(product);
+      final index = _products.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        _products[index] = product;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error updating product: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteProduct(String id) async {
+    try {
+      await _supabaseService.deleteProduct(id);
+      _products.removeWhere((p) => p.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting product: $e');
+      rethrow;
+    }
+  }
 }

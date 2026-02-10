@@ -25,8 +25,7 @@ class _BillingScreenState extends State<BillingScreen> {
       TextEditingController(text: '0');
 
   Product? _selectedProduct;
-  // We don't strictly need a controller for Autocomplete's text unless we want to clear it manually
-  // but Autocomplete manages its own state via fieldViewBuilder's controller.
+  TextEditingController? _productSearchController;
 
   @override
   void initState() {
@@ -47,6 +46,7 @@ class _BillingScreenState extends State<BillingScreen> {
       setState(() {
         _selectedProduct = null;
         _quantityController.text = '1';
+        _productSearchController?.clear();
       });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Added to cart'),
@@ -185,22 +185,37 @@ class _BillingScreenState extends State<BillingScreen> {
                   const Divider(height: 32),
 
                   _buildSectionHeader('Add Product'),
-                  // Product Dropdown / Search
+                  // Product Search Autocomplete
                   Consumer<ProductProvider>(
                     builder: (context, productProvider, _) {
-                      return DropdownButtonFormField<Product>(
-                        decoration:
-                            const InputDecoration(labelText: 'Select Product'),
-                        value: _selectedProduct,
-                        isExpanded: true,
-                        items: productProvider.products.map((p) {
-                          return DropdownMenuItem(
-                            value: p,
-                            child: Text('${p.name} (₹${p.price})'),
+                      return Autocomplete<Product>(
+                        displayStringForOption: (Product option) =>
+                            '${option.name} (\u20B9${option.price})',
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text == '') {
+                            return const Iterable<Product>.empty();
+                          }
+                          return productProvider.products
+                              .where((Product option) {
+                            return option.name
+                                .toLowerCase()
+                                .contains(textEditingValue.text.toLowerCase());
+                          });
+                        },
+                        onSelected: (Product selection) {
+                          setState(() {
+                            _selectedProduct = selection;
+                          });
+                        },
+                        fieldViewBuilder:
+                            (context, controller, focusNode, onFieldSubmitted) {
+                          _productSearchController = controller;
+                          return CustomTextField(
+                            label: 'Search Product',
+                            controller: controller,
+                            hint: 'Type product name...',
+                            focusNode: focusNode,
                           );
-                        }).toList(),
-                        onChanged: (val) {
-                          setState(() => _selectedProduct = val);
                         },
                       );
                     },

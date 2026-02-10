@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../constants/app_constants.dart';
+
 import '../models/product.dart';
 import '../models/customer.dart';
 import '../models/bill.dart';
@@ -32,6 +32,18 @@ class SupabaseService {
         .single();
 
     return Product.fromJson(response);
+  }
+
+  Future<void> updateProduct(Product product) async {
+    await _client.from('products').update({
+      'name': product.name,
+      'price': product.price,
+      'stock': product.stock,
+    }).eq('id', product.id!);
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await _client.from('products').delete().eq('id', id);
   }
 
   // --- Customers ---
@@ -67,6 +79,19 @@ class SupabaseService {
         .single();
 
     return Customer.fromJson(response);
+  }
+
+  Future<void> updateCustomer(Customer customer) async {
+    await _client.from('customers').update({
+      'name': customer.name,
+      'phone': customer.phone,
+      'address': customer.address,
+      // Intentionally NOT updating previous_due here to avoid overwriting logic
+    }).eq('id', customer.id!);
+  }
+
+  Future<void> deleteCustomer(String id) async {
+    await _client.from('customers').delete().eq('id', id);
   }
 
   Future<void> updateCustomerDue(String id, double newDue) async {
