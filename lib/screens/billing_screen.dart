@@ -196,7 +196,7 @@ class _BillingScreenState extends State<BillingScreen> {
                         items: productProvider.products.map((p) {
                           return DropdownMenuItem(
                             value: p,
-                            child: Text('${p.name} (\$${p.price})'),
+                            child: Text('${p.name} (₹${p.price})'),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -260,12 +260,12 @@ class _BillingScreenState extends State<BillingScreen> {
                                     return ListTile(
                                       title: Text(item.product.name),
                                       subtitle: Text(
-                                          '${item.quantity} x \$${item.priceAtTime}'),
+                                          '${item.quantity} x ${item.priceAtTime}'),
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            '\$${item.total.toStringAsFixed(2)}',
+                                            '₹${item.total.toStringAsFixed(2)}',
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
@@ -328,7 +328,7 @@ class _BillingScreenState extends State<BillingScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
                                   child: Text(
-                                    'Previous Due: \$${billProvider.selectedCustomer!.previousDue} | Total Due: \$${billProvider.totalDueIncludingPrevious}',
+                                    'Previous Due: ₹${billProvider.selectedCustomer!.previousDue} | Total Due: ₹${billProvider.totalDueIncludingPrevious}',
                                     style: const TextStyle(
                                         color: AppColors.error,
                                         fontWeight: FontWeight.bold),
@@ -407,7 +407,7 @@ class _BillingScreenState extends State<BillingScreen> {
           ),
         ),
         Text(
-          '\$${value.toStringAsFixed(2)}',
+          '₹${value.toStringAsFixed(2)}',
           style: TextStyle(
             fontSize: isTotal ? 20 : 16,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,

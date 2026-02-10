@@ -10,12 +10,12 @@ class PrintService {
   Future<void> printBill(
       Bill bill, List<BillItem> items, Customer customer) async {
     final doc = pw.Document();
-
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+    final dateFormat = DateFormat('dd-MM-yyyy HH:mm');
 
     doc.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80,
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           final grandTotal = bill.totalAmount - bill.discount;
           final previousDue = customer.previousDue;
@@ -26,105 +26,121 @@ class PrintService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              /// HEADER
               pw.Center(
-                  child: pw.Text('MY SHOP',
-                      style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold, fontSize: 20))),
-              pw.Divider(),
-              pw.Text('Date: ${dateFormat.format(bill.createdAt)}'),
-              pw.Text('Bill ID: ${bill.id ?? "N/A"}'),
-              pw.Divider(),
-              pw.Text('Customer: ${customer.name}'),
-              pw.Text('Phone: ${customer.phone}'),
-              pw.Divider(),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Item',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Qty',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Price',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Total',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                ],
-              ),
-              pw.Divider(),
-              ...items.map((item) {
-                return pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                child: pw.Column(
                   children: [
-                    pw.Expanded(child: pw.Text(item.product.name)),
-                    pw.Text('${item.quantity}'),
-                    pw.Text('${item.priceAtTime}'),
                     pw.Text(
-                        '${(item.priceAtTime * item.quantity).toStringAsFixed(2)}'),
+                      "MAHASHAKTI CHANACHUR",
+                      style: pw.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      "Gangarampur, Dakshin Dinajpur, 733121",
+                      style: pw.TextStyle(fontSize: 12),
+                    ),
                   ],
-                );
-              }).toList(),
+                ),
+              ),
+
+              pw.SizedBox(height: 20),
               pw.Divider(),
+
+              /// BILL INFO
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Total:'),
-                  pw.Text('${bill.totalAmount.toStringAsFixed(2)}'),
-                ],
-              ),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Discount:'),
-                  pw.Text('${bill.discount.toStringAsFixed(2)}'),
-                ],
-              ),
-              pw.Divider(),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Grand Total:',
+                  pw.Text("CASH MEMO NO: ${bill.id ?? ''}",
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('${grandTotal.toStringAsFixed(2)}',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.Text("Date: ${dateFormat.format(bill.createdAt)}"),
                 ],
               ),
-              pw.SizedBox(height: 5),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+
+              pw.SizedBox(height: 15),
+
+              /// CUSTOMER INFO
+              pw.Text("Customer Name: ${customer.name}",
+                  style: pw.TextStyle(fontSize: 12)),
+              pw.Text("Mobile Number: ${customer.phone}",
+                  style: pw.TextStyle(fontSize: 12)),
+
+              pw.SizedBox(height: 25),
+
+              /// TABLE
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(1),
+                  1: const pw.FlexColumnWidth(4),
+                  2: const pw.FlexColumnWidth(1.5),
+                  3: const pw.FlexColumnWidth(2),
+                  4: const pw.FlexColumnWidth(2),
+                },
                 children: [
-                  pw.Text('Previous Due:'),
-                  pw.Text('${previousDue.toStringAsFixed(2)}'),
+                  /// TABLE HEADER
+                  pw.TableRow(
+                    decoration:
+                        const pw.BoxDecoration(color: PdfColors.grey300),
+                    children: [
+                      _tableCell("SL", isHeader: true),
+                      _tableCell("PRODUCT", isHeader: true),
+                      _tableCell("QTY", isHeader: true),
+                      _tableCell("PRICE", isHeader: true),
+                      _tableCell("TOTAL", isHeader: true),
+                    ],
+                  ),
+
+                  /// ITEMS
+                  ...items.asMap().entries.map((entry) {
+                    int index = entry.key + 1;
+                    BillItem item = entry.value;
+
+                    return pw.TableRow(
+                      children: [
+                        _tableCell(index.toString()),
+                        _tableCell(item.product.name),
+                        _tableCell(item.quantity.toString()),
+                        _tableCell(item.priceAtTime.toStringAsFixed(2)),
+                        _tableCell((item.priceAtTime * item.quantity)
+                            .toStringAsFixed(2)),
+                      ],
+                    );
+                  }).toList(),
                 ],
               ),
-              pw.Divider(),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Total Payable Amount:',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('${totalPayable.toStringAsFixed(2)}',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                ],
+
+              pw.SizedBox(height: 30),
+
+              /// TOTALS SECTION (RIGHT ALIGNED)
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Container(
+                  width: 250,
+                  child: pw.Column(
+                    children: [
+                      _amountRow("Total", bill.totalAmount),
+                      _amountRow("Discount", bill.discount),
+                      _amountRow("Previous Due", previousDue),
+                      pw.Divider(),
+                      _amountRow("Total Payable", totalPayable, isBold: true),
+                      _amountRow("Paid", paid),
+                      _amountRow("Current Due", currentDue, isBold: true),
+                    ],
+                  ),
+                ),
               ),
-              pw.SizedBox(height: 5),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Paid:'),
-                  pw.Text('${paid.toStringAsFixed(2)}'),
-                ],
-              ),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Current Due:'),
-                  pw.Text('${currentDue.toStringAsFixed(2)}'),
-                ],
-              ),
-              pw.Divider(),
+
+              pw.Spacer(),
+
               pw.Center(
-                  child: pw.Text('Thank You!',
-                      style: pw.TextStyle(fontStyle: pw.FontStyle.italic))),
+                child: pw.Text(
+                  "Thank You For Your Business!",
+                  style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
+                ),
+              ),
             ],
           );
         },
@@ -134,6 +150,37 @@ class PrintService {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
       name: 'Bill-${bill.id ?? "New"}',
+    );
+  }
+
+  /// Table Cell
+  pw.Widget _tableCell(String text, {bool isHeader = false}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  /// Amount Row
+  pw.Widget _amountRow(String title, double value, {bool isBold = false}) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Text(title,
+            style: isBold
+                ? pw.TextStyle(fontWeight: pw.FontWeight.bold)
+                : const pw.TextStyle()),
+        pw.Text(value.toStringAsFixed(2),
+            style: isBold
+                ? pw.TextStyle(fontWeight: pw.FontWeight.bold)
+                : const pw.TextStyle()),
+      ],
     );
   }
 }
