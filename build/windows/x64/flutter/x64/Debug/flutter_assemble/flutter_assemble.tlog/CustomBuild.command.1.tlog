@@ -1,0 +1,28 @@
+^C:\USERS\DIPAN\.GEMINI\ANTIGRAVITY\SCRATCH\BILLING_APP\BUILD\WINDOWS\X64\CMAKEFILES\EC12C02F367E2AFB16389DD0E3730755\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\Users\dipan\Downloads\flutter_windows\flutter PROJECT_DIR=C:\Users\dipan\.gemini\antigravity\scratch\billing_app FLUTTER_ROOT=C:\Users\dipan\Downloads\flutter_windows\flutter FLUTTER_EPHEMERAL_DIR=C:\Users\dipan\.gemini\antigravity\scratch\billing_app\windows\flutter\ephemeral PROJECT_DIR=C:\Users\dipan\.gemini\antigravity\scratch\billing_app FLUTTER_TARGET=C:\Users\dipan\.gemini\antigravity\scratch\billing_app\lib\main.dart DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=C:\Users\dipan\.gemini\antigravity\scratch\billing_app\.dart_tool\package_config.json C:/Users/dipan/Downloads/flutter_windows/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DIPAN\.GEMINI\ANTIGRAVITY\SCRATCH\BILLING_APP\BUILD\WINDOWS\X64\CMAKEFILES\5047EC74223776172611F8E7AB96D5B4\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\DIPAN\.GEMINI\ANTIGRAVITY\SCRATCH\BILLING_APP\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/dipan/.gemini/antigravity/scratch/billing_app/windows -BC:/Users/dipan/.gemini/antigravity/scratch/billing_app/build/windows/x64 --check-stamp-file C:/Users/dipan/.gemini/antigravity/scratch/billing_app/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,10 @@
+^C:\USERS\DIPAN\.GEMINI\ANTIGRAVITY\SCRATCH\BILLING_APP\BUILD\WINDOWS\X64\CMAKEFILES\006C483C3E4FDEAE68BD719C0CBA4F6E\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

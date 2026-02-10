@@ -185,84 +185,83 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   itemBuilder: (context, index) {
                     final product = provider.products[index];
                     return Card(
-  child: ListTile(
-    leading: CircleAvatar(
-      backgroundColor: AppColors.secondary,
-      child: Text(
-        (index + 1).toString(),
-        style: const TextStyle(color: Colors.white),
-      ),
-    ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.secondary,
+                          child: Text(
+                            (index + 1).toString(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        title: Row(
+                          // mainAxisAlignment: MainAxisAlignment.start,
+                          // crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Product Name
 
-    title: Row(
-      // mainAxisAlignment: MainAxisAlignment.start,
-      // crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Product Name
-        
-           Expanded(
-            child: Text(
-            product.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-           ),
-        
-        const SizedBox(width: 8),
-        // Price Highlight
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '₹${product.price.toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ],
-    ),
+                            Expanded(
+                              child: Text(
+                                product.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
 
-    subtitle: Text('Stock: ${product.stock}'),
-
-    trailing: PopupMenuButton<String>(
-      onSelected: (value) {
-        if (value == 'edit') {
-          _showProductDialog(context, product: product);
-        } else if (value == 'delete') {
-          _confirmDelete(context, product);
-        }
-      },
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 'edit',
-          child: Row(
-            children: [
-              Icon(Icons.edit, size: 18),
-              SizedBox(width: 8),
-              Text('Edit'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, size: 18, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Delete'),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-);
-
+                            const SizedBox(width: 8),
+                            // Price Highlight
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '₹${product.price.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text('Stock: ${product.stock}'),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              _showProductDialog(context, product: product);
+                            } else if (value == 'delete') {
+                              _confirmDelete(context, product);
+                            }
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete,
+                                      size: 18, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 );
               },

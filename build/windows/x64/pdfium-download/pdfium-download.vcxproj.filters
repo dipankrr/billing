@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\3cc352851eec4e6ca633304e1dde6621\pdfium-download-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\a2dd6bf6da1c3acc9d4b9807ce42d8a4\pdfium-download-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\310332de71d769f691a26495109b3bd5\pdfium-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\dipan\.gemini\antigravity\scratch\billing_app\build\windows\x64\pdfium-download\CMakeFiles\pdfium-download" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D671749A-A500-33BF-A88D-A57CA47F573D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
