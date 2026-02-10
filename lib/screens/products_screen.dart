@@ -155,62 +155,120 @@ class _ProductsScreenState extends State<ProductsScreen> {
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: Consumer<ProductProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: CustomTextField(
+              label: 'Search Product',
+              hint: 'Enter product name...',
+              onChanged: (val) {
+                context.read<ProductProvider>().searchProducts(val);
+              },
+            ),
+          ),
+          Expanded(
+            child: Consumer<ProductProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (provider.products.isEmpty) {
-            return const Center(child: Text('No products found. Add one!'));
-          }
+                if (provider.products.isEmpty) {
+                  return const Center(child: Text('No products found.'));
+                }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.products.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final product = provider.products[index];
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.secondary,
-                    child: Text(
-                      product.name[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Text(product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('Stock: ${product.stock}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: AppColors.accent),
-                        onPressed: () =>
-                            _showProductDialog(context, product: product),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: AppColors.error),
-                        onPressed: () => _confirmDelete(context, product),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: provider.products.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final product = provider.products[index];
+                    return Card(
+  child: ListTile(
+    leading: CircleAvatar(
+      backgroundColor: AppColors.secondary,
+      child: Text(
+        (index + 1).toString(),
+        style: const TextStyle(color: Colors.white),
+      ),
+    ),
+
+    title: Row(
+      // mainAxisAlignment: MainAxisAlignment.start,
+      // crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Product Name
+        
+           Expanded(
+            child: Text(
+            product.name,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+           ),
+        
+        const SizedBox(width: 8),
+        // Price Highlight
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '₹${product.price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    ),
+
+    subtitle: Text('Stock: ${product.stock}'),
+
+    trailing: PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'edit') {
+          _showProductDialog(context, product: product);
+        } else if (value == 'delete') {
+          _confirmDelete(context, product);
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit, size: 18),
+              SizedBox(width: 8),
+              Text('Edit'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, size: 18, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Delete'),
+            ],
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
