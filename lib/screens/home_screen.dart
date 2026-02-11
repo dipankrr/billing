@@ -3,6 +3,7 @@ import '../constants/app_theme.dart';
 import 'billing_screen.dart';
 import 'products_screen.dart';
 import 'customers_screen.dart';
+import 'bill_history_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -61,12 +62,15 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _DashboardCard(
-                  title: 'Reports',
-                  icon: Icons.bar_chart,
+                  title: 'Bill History',
+                  icon: Icons.history,
                   color: AppColors.accent,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Coming Soon')));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const BillHistoryScreen()),
+                    );
                   },
                 ),
               ],

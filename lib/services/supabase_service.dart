@@ -100,6 +100,12 @@ class SupabaseService {
         .update({'previous_due': newDue}).eq('id', id);
   }
 
+  Future<Customer?> getCustomerById(String id) async {
+    final response =
+        await _client.from('customers').select().eq('id', id).single();
+    return Customer.fromJson(response);
+  }
+
   // --- Bills ---
   Future<void> createBill(Bill bill, List<BillItem> items) async {
     // 1. Create Bill
@@ -139,5 +145,74 @@ class SupabaseService {
       final currentDue = (customerRes['previous_due'] as num).toDouble();
       await updateCustomerDue(bill.customerId, currentDue + bill.dueAmount);
     }
+  }
+
+  // --- Bill History ---
+  Future<List<Map<String, dynamic>>> getBills({
+    int page = 0,
+    int pageSize = 20,
+    String? searchQuery,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize - 1;
+
+    var query = _client
+        .from('bills')
+        .select('*, customers(name)')
+        .order('created_at', ascending: false)
+        .range(from, to);
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      // NOTE: Filtering by joined table column 'customers.name' requires
+      // specific syntax or view. Supabase simple filtering on joined tables
+      // can be tricky.
+      // A workaround is to search 'customer_id' if we knew it, or use
+      // !inner join if we want to filter ONLY bills that match.
+      // simpler approach for MVP: Join and Filter might need a different structure
+      // or we accept we might need to filter on client side if pagination is small,
+      // BUT for "lots of bills" we want server side.
+      //
+      // Correct Supabase syntax for filtering on joined resource:
+      // .ilike('customers.name', '%$searchQuery%') works if referenced correctly.
+      // However, simplified 'textSearch' or similar might be better.
+      // Let's try the direct nested filter approach:
+      // We'll use the `!inner` hint to ensure we only get bills with matching customers
+      query = _client
+          .from('bills')
+          .select('*, customers!inner(name)')
+          .ilike('customers.name', '%$searchQuery%')
+          .order('created_at', ascending: false)
+          .range(from, to);
+    }
+
+    final response = await query;
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<List<BillItem>> getBillItems(String billId) async {
+    final response = await _client
+        .from('bill_items')
+        .select('*, products(name)')
+        .eq('bill_id', billId);
+
+    final data = response as List<dynamic>;
+    return data.map((json) {
+      // We need to construct BillItem manually because our model expects a Product object
+      // but here we just joined the name.
+      final productData = json['products'];
+      final product = Product(
+        id: json['product_id'],
+        name: productData != null ? productData['name'] : 'Unknown',
+        price: (json['price_at_time'] as num).toDouble(), // fallback
+        stock: 0, // irrelevant for history
+      );
+
+      return BillItem(
+        id: json['id'],
+        product: product,
+        quantity: json['quantity'],
+        priceAtTime: (json['price_at_time'] as num).toDouble(),
+      );
+    }).toList();
   }
 }
