@@ -7,6 +7,7 @@ import 'providers/bill_provider.dart';
 import 'providers/customer_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/bill_history_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/home_screen.dart';
 
 Future<void> main() async {
@@ -31,6 +32,7 @@ class BillingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(create: (_) => BillProvider()),
         ChangeNotifierProvider(create: (_) => BillHistoryProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
         title: 'Billing App',

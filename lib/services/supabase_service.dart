@@ -215,4 +215,33 @@ class SupabaseService {
       );
     }).toList();
   }
+
+  Future<Map<String, int>> getDashboardStats() async {
+    final productRes =
+        await _client.from('products').select('*').count(CountOption.exact);
+    final productCount = productRes.count;
+
+    final customerRes =
+        await _client.from('customers').select('*').count(CountOption.exact);
+    final customerCount = customerRes.count;
+
+    final billRes =
+        await _client.from('bills').select('*').count(CountOption.exact);
+    final billCount = billRes.count;
+
+    // Low stock: products with stock < 10
+    final lowStockRes = await _client
+        .from('products')
+        .select('*')
+        .lt('stock', 10)
+        .count(CountOption.exact);
+    final lowStockCount = lowStockRes.count;
+
+    return {
+      'products': productCount,
+      'customers': customerCount,
+      'bills': billCount,
+      'lowStock': lowStockCount,
+    };
+  }
 }

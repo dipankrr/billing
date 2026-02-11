@@ -309,7 +309,7 @@ class _BillingScreenState extends State<BillingScreen> {
                     child: _buildCartList(billProvider),
                   ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // Totals & Actions
             Card(
@@ -320,6 +320,21 @@ class _BillingScreenState extends State<BillingScreen> {
                   children: [
                     _buildSummaryRow('Subtotal', billProvider.totalAmount),
                     const SizedBox(height: 8),
+                    const Divider(height: 24),
+                    // _buildSummaryRow('Current Due', billProvider.dueAmount,
+                    //     isTotal: true),
+                    if (billProvider.selectedCustomer != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Previous Due: ₹${billProvider.selectedCustomer!.previousDue} • Current Due: ₹${billProvider.dueAmount} • Total Due: ₹${billProvider.totalDueIncludingPrevious}',
+                          style: const TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (billProvider.selectedCustomer != null)
+                      _buildSummaryRow('Total Payable Amount', (billProvider.totalAmount - billProvider.discount) + billProvider.selectedCustomer!.previousDue),
                     Row(
                       children: [
                         Expanded(
@@ -343,19 +358,7 @@ class _BillingScreenState extends State<BillingScreen> {
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
-                    _buildSummaryRow('Due Amount', billProvider.dueAmount,
-                        isTotal: true),
-                    if (billProvider.selectedCustomer != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Previous Due: ₹${billProvider.selectedCustomer!.previousDue} | Total Due: ₹${billProvider.totalDueIncludingPrevious}',
-                          style: const TextStyle(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
+
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
