@@ -112,7 +112,7 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
                         ),
                         subtitle: Text(
                           DateFormat('dd MMM yyyy, hh:mm a')
-                              .format(bill.createdAt),
+                              .format(bill.createdAt.toLocal()),
                         ),
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -266,11 +266,12 @@ class _BillDetailsDialogState extends State<_BillDetailsDialog> {
                     paidAmount: widget.bill.paidAmount,
                     dueAmount: widget.bill.dueAmount,
                     items: _items!,
+                    memoNo: widget.bill.memoNo,
                   );
 
                   await PrintService().printBill(fullBill, _items!, customer);
                 },
-          icon: const Icon(Icons.print),
+          icon: const Icon(Icons.print, color: Colors.white),
           label: const Text('Print'),
         ),
       ],

@@ -42,6 +42,7 @@ class BillHistoryProvider with ChangeNotifier {
         final customer = json['customers'];
         return Bill(
           id: json['id'],
+          memoNo: json['memo_no'],
           customerId: json['customer_id'],
           customerName: customer != null ? customer['name'] : 'Unknown',
           createdAt: DateTime.parse(json['created_at']),

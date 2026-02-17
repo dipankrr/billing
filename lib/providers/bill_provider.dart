@@ -115,10 +115,14 @@ class BillProvider with ChangeNotifier {
       );
 
       // Save to Supabase
-      await _supabaseService.createBill(bill, _cart);
+      final savedBill = await _supabaseService.createBill(bill, _cart);
 
-      // Print
-      await _printService.printBill(bill, _cart, _selectedCustomer!);
+await _printService.printBill(
+    savedBill,
+    _cart,
+    _selectedCustomer!,
+);
+
 
       // Clear after success
       clearCart();

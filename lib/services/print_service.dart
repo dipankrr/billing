@@ -10,7 +10,7 @@ class PrintService {
   Future<void> printBill(
       Bill bill, List<BillItem> items, Customer customer) async {
     final doc = pw.Document();
-    final dateFormat = DateFormat('dd-MM-yyyy HH:mm');
+    final dateFormat = DateFormat('dd-MM-yyyy hh:mm a');
 
     // Load Logo
     final logoUrl =
@@ -52,7 +52,7 @@ class PrintService {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text(
-                            "MAHASHAKTI CHANACHUR",
+                            AppConstants.title,
                             style: pw.TextStyle(
                               fontSize: 22,
                               fontWeight: pw.FontWeight.bold,
@@ -60,7 +60,17 @@ class PrintService {
                           ),
                           pw.SizedBox(height: 4),
                           pw.Text(
-                            "Gangarampur, Dakshin Dinajpur, 733121",
+                            "Govt Reg Number: WB-19-0003546",
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                           pw.SizedBox(height: 4),
+                          pw.Text(
+                            AppConstants.address,
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                           pw.SizedBox(height: 4),
+                          pw.Text(
+                            AppConstants.contact,
                             style: pw.TextStyle(fontSize: 12),
                           ),
                         ],
@@ -75,9 +85,9 @@ class PrintService {
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text("CASH MEMO NO: ${bill.id ?? ''}",
+                      pw.Text("MEMO NO: ${bill.memoNo ?? ''}",
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text("Date: ${dateFormat.format(bill.createdAt)}"),
+                      pw.Text("Date: ${dateFormat.format(bill.createdAt.toLocal())}"),
                     ],
                   ),
 
@@ -174,7 +184,7 @@ class PrintService {
 
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
-      name: 'Bill-${bill.id ?? "New"}',
+      name: 'Bill-${bill.memoNo?? "new"}',
     );
   }
 

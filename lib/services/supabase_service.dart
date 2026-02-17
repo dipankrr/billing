@@ -107,7 +107,7 @@ class SupabaseService {
   }
 
   // --- Bills ---
-  Future<void> createBill(Bill bill, List<BillItem> items) async {
+  Future<Bill> createBill(Bill bill, List<BillItem> items) async {
     // 1. Create Bill
     final billResponse = await _client
         .from('bills')
@@ -145,6 +145,18 @@ class SupabaseService {
       final currentDue = (customerRes['previous_due'] as num).toDouble();
       await updateCustomerDue(bill.customerId, currentDue + bill.dueAmount);
     }
+
+    return Bill(
+      id: billResponse['id'],
+      memoNo: billResponse['memo_no'], // 👈 IMPORTANT
+      customerId: billResponse['customer_id'],
+      createdAt: DateTime.parse(billResponse['created_at']),
+      totalAmount:(billResponse['total_amount'] as num).toDouble(),
+      discount: (billResponse['discount'] as num).toDouble(),
+      paidAmount:(billResponse['paid_amount'] as num).toDouble(),
+      dueAmount: (billResponse['due_amount'] as num).toDouble(),
+    );
+
   }
 
   // --- Bill History ---

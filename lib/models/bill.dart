@@ -27,6 +27,7 @@ class BillItem {
 
 class Bill {
   final String? id;
+  final String? memoNo;
   final String customerId; // UUID
   final String? customerName; // For display
   final DateTime createdAt;
@@ -38,6 +39,7 @@ class Bill {
 
   Bill({
     this.id,
+    this.memoNo,
     required this.customerId,
     this.customerName,
     required this.createdAt,

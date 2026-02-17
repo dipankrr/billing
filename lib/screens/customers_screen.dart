@@ -1,3 +1,4 @@
+import 'package:billing_app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_theme.dart';
@@ -192,8 +193,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if(customer.previousDue != 0.00)
                             Text(
-                              'Due: \$${customer.previousDue.toStringAsFixed(2)}',
+                              'Due: ${AppConstants.currencySymbol}${customer.previousDue.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: customer.previousDue > 0
@@ -208,12 +210,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               onPressed: () => _showCustomerDialog(context,
                                   customer: customer),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: AppColors.error),
-                              onPressed: () =>
-                                  _confirmDelete(context, customer),
-                            ),
+                            // IconButton(
+                            //   icon: const Icon(Icons.delete,
+                            //       color: AppColors.error),
+                            //   onPressed: () =>
+                            //       _confirmDelete(context, customer),
+                            // ),
                           ],
                         ),
                       ),
