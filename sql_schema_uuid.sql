@@ -29,10 +29,12 @@ create table public.customers (
 create table public.bills (
   id uuid default gen_random_uuid() primary key,
   customer_id uuid references public.customers not null,
+  memo_no text,
   total_amount numeric not null,
   discount numeric default 0,
   paid_amount numeric default 0,
   due_amount numeric default 0,
+  previous_due_at_time numeric default 0,  -- Customer's due snapshot at time of bill creation
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

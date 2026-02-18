@@ -42,12 +42,17 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
     super.dispose();
   }
 
-  void _showBillDetails(BuildContext context, Bill bill) async {
-    // Show loading while fetching items? Or fetch inside the dialog?
-    // Let's fetch inside dialog or show a loading indicator there.
+  void _showBillDetails(BuildContext context, Bill bill) {
     showDialog(
       context: context,
       builder: (context) => _BillDetailsDialog(bill: bill),
+    );
+  }
+
+  void _showPayDueDialog(BuildContext context, Bill bill) {
+    showDialog(
+      context: context,
+      builder: (context) => _PayDueDialog(bill: bill),
     );
   }
 
@@ -63,8 +68,8 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: CustomTextField(
-              label: 'Search Customer',
-              hint: 'Enter customer name...',
+              label: 'Search Bill',
+              hint: 'Enter customer name/Memo No...',
               controller: _searchController, // Use the controller
               onChanged: (val) {
                 // Debounce could be added here
@@ -101,43 +106,91 @@ class _BillHistoryScreenState extends State<BillHistoryScreen> {
 
                     final bill = provider.bills[index];
                     return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary,
-                          child: const Icon(Icons.receipt, color: Colors.white),
-                        ),
-                        title: Text(
-                          bill.customerName ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          DateFormat('dd MMM yyyy, hh:mm a')
-                              .format(bill.createdAt.toLocal()),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '₹${bill.totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primary,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primary,
+                              child: const Icon(Icons.receipt,
+                                  color: Colors.white),
+                            ),
+                            title: Text(
+                              bill.customerName ?? 'Unknown',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: Colors.blue.shade100,
+                                  ),
+                                  child: Text(
+                                    bill.memoNo.toString(),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Text(
+                                  DateFormat('dd MMM yyyy, hh:mm a')
+                                      .format(bill.createdAt.toLocal()),
+                                ),
+                              ],
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '₹${bill.totalAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                Text(
+                                  bill.dueAmount > 0
+                                      ? 'Due: ₹${bill.dueAmount.toStringAsFixed(2)}'
+                                      : 'Paid',
+                                  style: TextStyle(
+                                    color: bill.dueAmount > 0
+                                        ? AppColors.error
+                                        : Colors.green,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onTap: () => _showBillDetails(context, bill),
+                          ),
+                          if (bill.dueAmount > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 16, right: 16, bottom: 10),
+                              child: SizedBox(
+                                width: 200,
+                                child: OutlinedButton.icon(
+                                  onPressed: () =>
+                                      _showPayDueDialog(context, bill),
+                                  icon: const Icon(Icons.payments_outlined,
+                                      size: 18),
+                                  label: const Text('Pay Due'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.error,
+                                    side: const BorderSide(
+                                        color: AppColors.error),
+                                  ),
+                                ),
                               ),
                             ),
-                            Text(
-                              bill.dueAmount > 0 ? 'Due' : 'Paid',
-                              style: TextStyle(
-                                color: bill.dueAmount > 0
-                                    ? AppColors.error
-                                    : Colors.green,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _showBillDetails(context, bill),
+                        ],
                       ),
                     );
                   },
@@ -265,6 +318,8 @@ class _BillDetailsDialogState extends State<_BillDetailsDialog> {
                     discount: widget.bill.discount,
                     paidAmount: widget.bill.paidAmount,
                     dueAmount: widget.bill.dueAmount,
+                    previousDueAtTime:
+                        widget.bill.previousDueAtTime, // ← historical snapshot
                     items: _items!,
                     memoNo: widget.bill.memoNo,
                   );
@@ -295,6 +350,112 @@ class _BillDetailsDialogState extends State<_BillDetailsDialog> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─── Pay Due Dialog ───────────────────────────────────────────────────────────
+
+class _PayDueDialog extends StatefulWidget {
+  final Bill bill;
+  const _PayDueDialog({required this.bill});
+
+  @override
+  State<_PayDueDialog> createState() => _PayDueDialogState();
+}
+
+class _PayDueDialogState extends State<_PayDueDialog> {
+  final _amountController = TextEditingController();
+  bool _isSaving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirm() async {
+    final text = _amountController.text.trim();
+    final amount = double.tryParse(text);
+
+    if (amount == null || amount <= 0) {
+      setState(() => _error = 'Enter a valid amount.');
+      return;
+    }
+    if (amount > widget.bill.dueAmount) {
+      setState(() => _error =
+          'Amount cannot exceed due (₹${widget.bill.dueAmount.toStringAsFixed(2)}).');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
+
+    final success =
+        await context.read<BillHistoryProvider>().payDue(widget.bill, amount);
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? '₹${amount.toStringAsFixed(2)} payment recorded.'
+              : 'Failed to record payment. Try again.'),
+          backgroundColor: success ? Colors.green : AppColors.error,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Pay Due'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Customer: ${widget.bill.customerName ?? "Unknown"}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Outstanding Due: ₹${widget.bill.dueAmount.toStringAsFixed(2)}',
+            style: const TextStyle(color: AppColors.error),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: 'Amount to Pay (₹)',
+              border: const OutlineInputBorder(),
+              errorText: _error,
+              prefixText: '₹ ',
+            ),
+            autofocus: true,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _confirm,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('Confirm Payment'),
+        ),
+      ],
     );
   }
 }

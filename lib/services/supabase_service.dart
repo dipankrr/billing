@@ -106,9 +106,53 @@ class SupabaseService {
     return Customer.fromJson(response);
   }
 
+  Future<void> payBillDue(
+      String billId, String customerId, double amountPaid) async {
+    // 1. Fetch current bill amounts
+    final billRes = await _client
+        .from('bills')
+        .select('paid_amount, due_amount')
+        .eq('id', billId)
+        .single();
+
+    final currentPaid = (billRes['paid_amount'] as num).toDouble();
+    final currentDue = (billRes['due_amount'] as num).toDouble();
+
+    // Clamp to not overpay
+    final actualPayment = amountPaid.clamp(0, currentDue);
+    final newPaid = currentPaid + actualPayment;
+    final newDue = currentDue - actualPayment;
+
+    // 2. Update bill
+    await _client.from('bills').update({
+      'paid_amount': newPaid,
+      'due_amount': newDue,
+    }).eq('id', billId);
+
+    // 3. Update customer's total due
+    final customerRes = await _client
+        .from('customers')
+        .select('previous_due')
+        .eq('id', customerId)
+        .single();
+    final customerDue = (customerRes['previous_due'] as num).toDouble();
+    final newCustomerDue =
+        (customerDue - actualPayment).clamp(0.0, double.infinity);
+    await updateCustomerDue(customerId, newCustomerDue);
+  }
+
   // --- Bills ---
   Future<Bill> createBill(Bill bill, List<BillItem> items) async {
-    // 1. Create Bill
+    // 0. Fetch customer's current due BEFORE this bill (to snapshot it)
+    final customerSnapshot = await _client
+        .from('customers')
+        .select('previous_due')
+        .eq('id', bill.customerId)
+        .single();
+    final previousDueAtTime =
+        (customerSnapshot['previous_due'] as num).toDouble();
+
+    // 1. Create Bill (including the snapshotted previous_due_at_time)
     final billResponse = await _client
         .from('bills')
         .insert({
@@ -117,6 +161,7 @@ class SupabaseService {
           'discount': bill.discount,
           'paid_amount': bill.paidAmount,
           'due_amount': bill.dueAmount,
+          'previous_due_at_time': previousDueAtTime,
         })
         .select()
         .single();
@@ -137,26 +182,21 @@ class SupabaseService {
 
     // 3. Update Customer Due Amount
     if (bill.dueAmount != 0) {
-      final customerRes = await _client
-          .from('customers')
-          .select('previous_due')
-          .eq('id', bill.customerId)
-          .single();
-      final currentDue = (customerRes['previous_due'] as num).toDouble();
-      await updateCustomerDue(bill.customerId, currentDue + bill.dueAmount);
+      await updateCustomerDue(
+          bill.customerId, previousDueAtTime + bill.dueAmount);
     }
 
     return Bill(
       id: billResponse['id'],
-      memoNo: billResponse['memo_no'], // 👈 IMPORTANT
+      memoNo: billResponse['memo_no'],
       customerId: billResponse['customer_id'],
       createdAt: DateTime.parse(billResponse['created_at']),
-      totalAmount:(billResponse['total_amount'] as num).toDouble(),
+      totalAmount: (billResponse['total_amount'] as num).toDouble(),
       discount: (billResponse['discount'] as num).toDouble(),
-      paidAmount:(billResponse['paid_amount'] as num).toDouble(),
+      paidAmount: (billResponse['paid_amount'] as num).toDouble(),
       dueAmount: (billResponse['due_amount'] as num).toDouble(),
+      previousDueAtTime: previousDueAtTime,
     );
-
   }
 
   // --- Bill History ---
@@ -168,37 +208,45 @@ class SupabaseService {
     final from = page * pageSize;
     final to = from + pageSize - 1;
 
-    var query = _client
+    // No search: simple paginated fetch
+    if (searchQuery == null || searchQuery.isEmpty) {
+      final response = await _client
+          .from('bills')
+          .select('*, customers(name)')
+          .order('created_at', ascending: false)
+          .range(from, to);
+      return List<Map<String, dynamic>>.from(response);
+    }
+
+    // Search: run two queries and merge results
+    // 1. Match by memo_no (on bills table directly)
+    final memoResults = await _client
         .from('bills')
         .select('*, customers(name)')
+        .ilike('memo_no', '%$searchQuery%')
         .order('created_at', ascending: false)
         .range(from, to);
 
-    if (searchQuery != null && searchQuery.isNotEmpty) {
-      // NOTE: Filtering by joined table column 'customers.name' requires
-      // specific syntax or view. Supabase simple filtering on joined tables
-      // can be tricky.
-      // A workaround is to search 'customer_id' if we knew it, or use
-      // !inner join if we want to filter ONLY bills that match.
-      // simpler approach for MVP: Join and Filter might need a different structure
-      // or we accept we might need to filter on client side if pagination is small,
-      // BUT for "lots of bills" we want server side.
-      //
-      // Correct Supabase syntax for filtering on joined resource:
-      // .ilike('customers.name', '%$searchQuery%') works if referenced correctly.
-      // However, simplified 'textSearch' or similar might be better.
-      // Let's try the direct nested filter approach:
-      // We'll use the `!inner` hint to ensure we only get bills with matching customers
-      query = _client
-          .from('bills')
-          .select('*, customers!inner(name)')
-          .ilike('customers.name', '%$searchQuery%')
-          .order('created_at', ascending: false)
-          .range(from, to);
-    }
+    // 2. Match by customer name (inner join to filter)
+    final customerResults = await _client
+        .from('bills')
+        .select('*, customers!inner(name)')
+        .ilike('customers.name', '%$searchQuery%')
+        .order('created_at', ascending: false)
+        .range(from, to);
 
-    final response = await query;
-    return List<Map<String, dynamic>>.from(response);
+    // Merge and deduplicate by bill id
+    final seen = <String>{};
+    final merged = <Map<String, dynamic>>[];
+    for (final row in [...memoResults, ...customerResults]) {
+      final id = row['id'] as String;
+      if (seen.add(id)) merged.add(Map<String, dynamic>.from(row));
+    }
+    // Re-sort merged by created_at descending
+    merged.sort((a, b) =>
+        (b['created_at'] as String).compareTo(a['created_at'] as String));
+
+    return merged;
   }
 
   Future<List<BillItem>> getBillItems(String billId) async {

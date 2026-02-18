@@ -50,6 +50,8 @@ class BillHistoryProvider with ChangeNotifier {
           discount: (json['discount'] as num).toDouble(),
           paidAmount: (json['paid_amount'] as num).toDouble(),
           dueAmount: (json['due_amount'] as num).toDouble(),
+          previousDueAtTime:
+              (json['previous_due_at_time'] as num? ?? 0).toDouble(),
           items: [], // Items are fetched on demand
         );
       }).toList();
@@ -84,13 +86,18 @@ class BillHistoryProvider with ChangeNotifier {
   }
 
   Future<Customer?> fetchCustomer(String customerId) async {
-    // We need a method to get single customer.
-    // Since SupabaseService doesn't have it explicitly exposed as 'getCustomerById'
-    // but we can query it easily.
-    // For now, let's implement a quick helper here or use existing list if available?
-    // No, existing list might not have it.
-    // Let's call supabase directly or add method to service.
-    // Actually, let's add `getCustomerById` to SupabaseService for cleanliness.
     return await _supabaseService.getCustomerById(customerId);
+  }
+
+  Future<bool> payDue(Bill bill, double amountPaid) async {
+    try {
+      await _supabaseService.payBillDue(bill.id!, bill.customerId, amountPaid);
+      // Refresh the list to reflect updated amounts
+      await fetchBills(refresh: true);
+      return true;
+    } catch (e) {
+      print('Error paying due: $e');
+      return false;
+    }
   }
 }

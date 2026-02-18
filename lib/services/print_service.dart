@@ -23,7 +23,9 @@ class PrintService {
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           final grandTotal = bill.totalAmount - bill.discount;
-          final previousDue = customer.previousDue;
+          // Use the snapshotted previous due from when the bill was created,
+          // NOT the customer's current due (which changes over time).
+          final previousDue = bill.previousDueAtTime;
           final totalPayable = grandTotal + previousDue;
           final paid = bill.paidAmount;
           final currentDue = totalPayable - paid;
@@ -63,12 +65,12 @@ class PrintService {
                             "Govt Reg Number: WB-19-0003546",
                             style: pw.TextStyle(fontSize: 10),
                           ),
-                           pw.SizedBox(height: 4),
+                          pw.SizedBox(height: 4),
                           pw.Text(
                             AppConstants.address,
                             style: pw.TextStyle(fontSize: 10),
                           ),
-                           pw.SizedBox(height: 4),
+                          pw.SizedBox(height: 4),
                           pw.Text(
                             AppConstants.contact,
                             style: pw.TextStyle(fontSize: 12),
@@ -87,7 +89,8 @@ class PrintService {
                     children: [
                       pw.Text("MEMO NO: ${bill.memoNo ?? ''}",
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text("Date: ${dateFormat.format(bill.createdAt.toLocal())}"),
+                      pw.Text(
+                          "Date: ${dateFormat.format(bill.createdAt.toLocal())}"),
                     ],
                   ),
 
@@ -171,6 +174,12 @@ class PrintService {
                   pw.Center(
                     child: pw.Text(
                       "Thank You For Your Business!",
+                      // style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
+                    ),
+                  ),
+                  pw.Center(
+                    child: pw.Text(
+                      "© RM Digital Works",
                       style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
                     ),
                   ),
@@ -184,7 +193,7 @@ class PrintService {
 
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
-      name: 'Bill-${bill.memoNo?? "new"}',
+      name: 'Bill-${bill.memoNo ?? "new"}',
     );
   }
 

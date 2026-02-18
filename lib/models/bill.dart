@@ -35,6 +35,7 @@ class Bill {
   final double discount;
   final double paidAmount;
   final double dueAmount;
+  final double previousDueAtTime; // Customer's due BEFORE this bill was created
   final List<BillItem> items;
 
   Bill({
@@ -47,6 +48,7 @@ class Bill {
     required this.discount,
     required this.paidAmount,
     required this.dueAmount,
+    this.previousDueAtTime = 0.0,
     this.items = const [],
   });
 }
